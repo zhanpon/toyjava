@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import BinaryIO, Tuple
+from typing import BinaryIO, Tuple, List
 
 logger = logging.getLogger(__name__)
 
@@ -12,8 +12,6 @@ class ClassFile:
     """
 
     magic: int
-    minor_version: int
-    major_version: int
     constant_pool_count: int
     constant_pool: tuple
 
@@ -35,9 +33,45 @@ def parse_class_file(stream: BinaryIO) -> ClassFile:
 
     constant_pool = ConstantPoolReader(reader, constant_pool_count).read()
 
-    return ClassFile(
-        magic, minor_version, major_version, constant_pool_count, constant_pool
-    )
+    access_flags = reader.next_u2()
+    logger.debug(f"Read the field 'access_flags': {access_flags}")
+
+    this_class = reader.next_u2()
+    logger.debug(f"Read the field 'this_class': {this_class}")
+
+    super_class = reader.next_u2()
+    logger.debug(f"Read the field 'super_class': {super_class}")
+
+    interfaces_count = reader.next_u2()
+    logger.debug(f"Read the field 'interfaces_count: {interfaces_count}")
+
+    for _ in range(interfaces_count):
+        interface = reader.next_u2()
+        logger.debug(f"Read an interface {interface}")
+
+    fields_count = reader.next_u2()
+    logger.debug(f"Read the field 'fields_count': {fields_count}")
+
+    if fields_count != 0:
+        raise NotImplementedError
+
+    methods_count = reader.next_u2()
+    logger.debug(f"Read the field 'methods_count': {methods_count}")
+
+    MethodsReader(reader, methods_count).read()
+
+    attributes_count = reader.next_u2()
+    logger.debug(f"Read the field 'attributes_count': {attributes_count}")
+
+    for _ in range(attributes_count):
+        reader.next_u2()
+        attributes_count = reader.next_u4()
+        for _ in range(attributes_count):
+            reader.next_u1()
+
+    assert reader.read(1) == b""
+
+    return ClassFile(magic, constant_pool_count, constant_pool,)
 
 
 class ClassFileReader:
@@ -127,3 +161,41 @@ class ConstantPoolReader:
         index = self.reader.next_u2()
         assert index in range(1, self.constant_pool_count)
         return index
+
+
+class MethodsReader:
+    def __init__(self, reader: ClassFileReader, methods_count: int):
+        self.reader = reader
+        self.methods_count = methods_count
+
+    def _next(self):
+        """
+        https://docs.oracle.com/javase/specs/jvms/se11/html/jvms-4.html#jvms-4.6
+        """
+
+        access_flags = self.reader.next_u2()
+        logger.debug(f"Read the field 'access_flags': {access_flags}")
+
+        name_index = self.reader.next_u2()
+        logger.debug(f"Read the field 'name_index': {name_index}")
+
+        descriptor_index = self.reader.next_u2()
+        logger.debug(f"Read the field 'descriptor_index': {descriptor_index}")
+
+        attributes_count = self.reader.next_u2()
+        logger.debug(f"Read the field 'attributes_count': {attributes_count}")
+
+        for _ in range(attributes_count):
+            attribute_name_index = self.reader.next_u2()
+            logger.debug(
+                f"Read the field 'attribute_name_index': {attribute_name_index}"
+            )
+            attribute_length = self.reader.next_u4()
+            logger.debug(f"Read the field 'attribute_length': {attribute_length}")
+
+            info = self.reader.read(attribute_length)
+            logger.debug(f"Read the field 'info' {info}")
+
+    def read(self):
+        for _ in range(self.methods_count):
+            self._next()
