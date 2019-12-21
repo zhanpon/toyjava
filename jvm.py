@@ -1,6 +1,8 @@
 import logging
 from dataclasses import dataclass
-from typing import BinaryIO, Tuple, List
+from typing import BinaryIO, Tuple
+
+from instructions import parse_instructions
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +16,17 @@ class ClassFile:
     magic: int
     constant_pool_count: int
     constant_pool: tuple
+    methods: tuple
+
+    def _main_method(self):
+        for m in self.methods:
+            utf8 = self.constant_pool[m.name_index]
+            if utf8["bytes"].decode() == "main":
+                return m
+
+    def main_instruction(self):
+        main_code = self._main_method().code
+        return parse_instructions(main_code)
 
 
 def parse_class_file(stream: BinaryIO) -> ClassFile:
@@ -31,7 +44,8 @@ def parse_class_file(stream: BinaryIO) -> ClassFile:
     constant_pool_count = reader.next_u2()
     logger.debug(f"Read the field 'constant_pool_count': {constant_pool_count}")
 
-    constant_pool = ConstantPoolReader(reader, constant_pool_count).read()
+    # The index starts from 1
+    constant_pool = (None,) + ConstantPoolReader(reader, constant_pool_count).read()
 
     access_flags = reader.next_u2()
     logger.debug(f"Read the field 'access_flags': {access_flags}")
@@ -58,7 +72,7 @@ def parse_class_file(stream: BinaryIO) -> ClassFile:
     methods_count = reader.next_u2()
     logger.debug(f"Read the field 'methods_count': {methods_count}")
 
-    MethodsReader(reader, methods_count).read()
+    methods = MethodsReader(reader, methods_count).read()
 
     attributes_count = reader.next_u2()
     logger.debug(f"Read the field 'attributes_count': {attributes_count}")
@@ -71,7 +85,7 @@ def parse_class_file(stream: BinaryIO) -> ClassFile:
 
     assert reader.read(1) == b""
 
-    return ClassFile(magic, constant_pool_count, constant_pool,)
+    return ClassFile(magic, constant_pool_count, constant_pool, methods)
 
 
 class ClassFileReader:
@@ -163,6 +177,12 @@ class ConstantPoolReader:
         return index
 
 
+@dataclass
+class Method:
+    name_index: int
+    code: bytes
+
+
 class MethodsReader:
     def __init__(self, reader: ClassFileReader, methods_count: int):
         self.reader = reader
@@ -185,17 +205,44 @@ class MethodsReader:
         attributes_count = self.reader.next_u2()
         logger.debug(f"Read the field 'attributes_count': {attributes_count}")
 
-        for _ in range(attributes_count):
-            attribute_name_index = self.reader.next_u2()
-            logger.debug(
-                f"Read the field 'attribute_name_index': {attribute_name_index}"
-            )
-            attribute_length = self.reader.next_u4()
-            logger.debug(f"Read the field 'attribute_length': {attribute_length}")
+        # Assume it is CodeAttribute:
+        # https://docs.oracle.com/javase/specs/jvms/se11/html/jvms-4.html#jvms-4.7.3
+        assert attributes_count == 1
 
-            info = self.reader.read(attribute_length)
-            logger.debug(f"Read the field 'info' {info}")
+        attribute_name_index = self.reader.next_u2()
+        logger.debug(f"Read the field 'attribute_name_index': {attribute_name_index}")
+        attribute_length = self.reader.next_u4()
+        logger.debug(f"Read the field 'attribute_length': {attribute_length}")
+
+        # info = self.reader.read(attribute_length)
+        # logger.debug(f"Read the field 'info' {info.hex()}")
+
+        max_stack = self.reader.next_u2()
+        logger.debug(f"Read the field 'max_stack': {max_stack}")
+
+        max_locals = self.reader.next_u2()
+
+        code_length = self.reader.next_u4()
+        logger.debug(f"Read the field 'code_length': {code_length}")
+
+        code = self.reader.read(code_length)
+        logger.debug(f"Read the field 'code': {code}")
+
+        exception_table_length = self.reader.next_u2()
+        logger.debug(
+            f"Read the field 'exception_table_length': {exception_table_length}"
+        )
+        for _ in range(exception_table_length):
+            self.reader.read(8)
+
+        attributes_count = self.reader.next_u2()
+        logger.debug(f"Read the field 'attributes_count': {attributes_count}")
+        for _ in range(attributes_count):
+            attribute_name_index2 = self.reader.next_u2()
+            attribute_length2 = self.reader.next_u4()
+            self.reader.read(attribute_length2)
+
+        return Method(name_index, code)
 
     def read(self):
-        for _ in range(self.methods_count):
-            self._next()
+        return tuple(self._next() for _ in range(self.methods_count))
