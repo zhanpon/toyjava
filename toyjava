@@ -1,0 +1,9 @@
+#!python3
+import sys
+
+from jvm import VirtualMachine, parse_class_file
+
+with open(sys.argv[1], "rb") as f:
+    result = parse_class_file(f)
+    vm = VirtualMachine()
+    vm.execute_main(result)
