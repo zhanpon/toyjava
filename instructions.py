@@ -12,11 +12,6 @@ class Getstatic:
     CODE = b"\xb2"
     index: int
 
-    def execute(self, constant_pool, operand_stack: list):
-        new_stack = operand_stack.copy()
-        new_stack.append(constant_pool[self.index])
-        return new_stack
-
 
 @dataclass
 class Ldc:

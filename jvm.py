@@ -2,9 +2,38 @@ import logging
 from dataclasses import dataclass
 from typing import BinaryIO, Tuple
 
-from instructions import parse_instructions
+from instructions import parse_instructions, Getstatic, Ldc, Invokevirtual
 
 logger = logging.getLogger(__name__)
+
+
+class VirtualMachine:
+    def __init__(self):
+        self.operand_stack = []
+
+    def execute_main(self, cls):
+        constant_pool = cls.constant_pool
+        instructions = cls.main_instructions()
+        for instruction in instructions:
+            if isinstance(instruction, Getstatic):
+                self.operand_stack.append(constant_pool[instruction.index])
+            elif isinstance(instruction, Ldc):
+                self.operand_stack.append(constant_pool[instruction.index])
+            elif isinstance(instruction, Invokevirtual):
+                # Assume the method only has one argument
+                methodref = constant_pool[instruction.index]
+                arg1 = self.operand_stack.pop()
+                objectref = self.operand_stack.pop()
+
+                field_class = constant_pool[constant_pool[objectref["class_index"]]["name_index"]]["bytes"].decode()
+                field_name = constant_pool[constant_pool[objectref["name_and_type_index"]]["name_index"]]["bytes"].decode()
+                method_name = constant_pool[constant_pool[methodref["name_and_type_index"]]["name_index"]]["bytes"].decode()
+
+                if field_class != "java/lang/System" or field_name != "out" or method_name != "println":
+                    raise NotImplementedError
+
+                arg1_str = constant_pool[arg1["string_index"]]["bytes"].decode()
+                print(arg1_str)
 
 
 @dataclass(frozen=True)
@@ -24,7 +53,7 @@ class ClassFile:
             if utf8["bytes"].decode() == "main":
                 return m
 
-    def main_instruction(self):
+    def main_instructions(self):
         main_code = self._main_method().code
         return parse_instructions(main_code)
 
