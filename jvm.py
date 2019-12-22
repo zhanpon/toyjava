@@ -167,7 +167,7 @@ class ConstantPoolReader:
                 "descriptor_index": self._read_index(),
             }
             logger.debug(f"Read a NameAndType_info: {info}")
-
+            return info
         else:
             raise NotImplementedError(tag)
 
