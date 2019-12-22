@@ -1,3 +1,4 @@
+from constants import Fieldref
 from instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return
 
 
@@ -9,3 +10,12 @@ def test_parse_instructions():
         Invokevirtual(4),
         Return(),
     )
+
+
+def test_get_static():
+    field = Fieldref(2, 3)
+    operand_stack = []
+    constant_pool = (None, field)
+    new_stack = Getstatic(1).execute(constant_pool, operand_stack)
+    assert operand_stack == []
+    assert new_stack == [field]
