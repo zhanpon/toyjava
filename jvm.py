@@ -18,7 +18,9 @@ class VirtualMachine:
             if isinstance(instruction, Getstatic):
                 self.operand_stack.append(constant_pool[instruction.index])
             elif isinstance(instruction, Ldc):
-                self.operand_stack.append(constant_pool[instruction.index])
+                # Assume it is a String constant
+                value = constant_pool[constant_pool[instruction.index]["string_index"]]["bytes"].decode()
+                self.operand_stack.append(value)
             elif isinstance(instruction, Invokevirtual):
                 # Assume the method only has one argument
                 methodref = constant_pool[instruction.index]
@@ -29,14 +31,11 @@ class VirtualMachine:
                 field_name = constant_pool[constant_pool[objectref["name_and_type_index"]]["name_index"]]["bytes"].decode()
                 method_name = constant_pool[constant_pool[methodref["name_and_type_index"]]["name_index"]]["bytes"].decode()
 
-                if field_class != "java/lang/System" or field_name != "out" or method_name != "println":
-                    raise NotImplementedError
-
-                if isinstance(arg1, int):
+                if field_class == "java/lang/System" and field_name == "out" and method_name == "println":
                     print(arg1)
                 else:
-                    arg1_str = constant_pool[arg1["string_index"]]["bytes"].decode()
-                    print(arg1_str)
+                    raise NotImplementedError("'invokevirtual' is not implemented except System.out.println")
+
             elif isinstance(instruction, Return):
                 return
             elif isinstance(instruction, Iconst2):
