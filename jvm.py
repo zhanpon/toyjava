@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import BinaryIO, Tuple
 
-from instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return
+from instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Iconst2
 
 logger = logging.getLogger(__name__)
 
@@ -32,10 +32,15 @@ class VirtualMachine:
                 if field_class != "java/lang/System" or field_name != "out" or method_name != "println":
                     raise NotImplementedError
 
-                arg1_str = constant_pool[arg1["string_index"]]["bytes"].decode()
-                print(arg1_str)
+                if isinstance(arg1, int):
+                    print(arg1)
+                else:
+                    arg1_str = constant_pool[arg1["string_index"]]["bytes"].decode()
+                    print(arg1_str)
             elif isinstance(instruction, Return):
                 return
+            elif isinstance(instruction, Iconst2):
+                self.operand_stack.append(2)
             else:
                 raise NotImplementedError(instruction)
 

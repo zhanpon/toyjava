@@ -30,6 +30,11 @@ class Return:
     CODE = b"\xb1"
 
 
+@dataclass
+class Iconst2:
+    CODE = b"\x05"
+
+
 class InstructionReader:
     def __init__(self, stream: BinaryIO):
         self.stream = stream
@@ -50,6 +55,8 @@ class InstructionReader:
                 yield Invokevirtual(self._read_index(2))
             elif code == Return.CODE:
                 yield Return()
+            elif code == Iconst2.CODE:
+                yield Iconst2()
             else:
                 raise NotImplementedError(code)
 

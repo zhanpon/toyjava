@@ -56,3 +56,12 @@ def test_execute3(capsys):
         vm.execute_main(cls)
         captured = capsys.readouterr()
         assert captured.out == "Hello Summer,\nGoodbye\n"
+
+
+def test_print_int(capsys):
+    with Path("data/PrintInt.class").open("rb") as f:
+        cls = parse_class_file(f)
+        vm = VirtualMachine()
+        vm.execute_main(cls)
+        captured = capsys.readouterr()
+        assert captured.out == "2\n"
