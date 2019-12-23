@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import BinaryIO, Tuple
 
-from instructions import parse_instructions, Getstatic, Ldc, Invokevirtual
+from instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,10 @@ class VirtualMachine:
 
                 arg1_str = constant_pool[arg1["string_index"]]["bytes"].decode()
                 print(arg1_str)
+            elif isinstance(instruction, Return):
+                return
+            else:
+                raise NotImplementedError(instruction)
 
 
 @dataclass(frozen=True)
