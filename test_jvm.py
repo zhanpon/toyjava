@@ -64,4 +64,4 @@ def test_print_int(capsys):
         vm = VirtualMachine()
         vm.execute_main(cls)
         captured = capsys.readouterr()
-        assert captured.out == "2\n"
+        assert captured.out == "-1\n0\n1\n2\n3\n4\n5\n"

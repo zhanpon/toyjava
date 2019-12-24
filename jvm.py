@@ -2,7 +2,8 @@ import logging
 from dataclasses import dataclass
 from typing import BinaryIO, Tuple
 
-from instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Iconst2
+from instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Iconst2, IconstM1, Iconst0, Iconst1, \
+    Iconst3, Iconst4, Iconst5
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +39,20 @@ class VirtualMachine:
 
             elif isinstance(instruction, Return):
                 return
+            elif isinstance(instruction, IconstM1):
+                self.operand_stack.append(-1)
+            elif isinstance(instruction, Iconst0):
+                self.operand_stack.append(0)
+            elif isinstance(instruction, Iconst1):
+                self.operand_stack.append(1)
             elif isinstance(instruction, Iconst2):
                 self.operand_stack.append(2)
+            elif isinstance(instruction, Iconst3):
+                self.operand_stack.append(3)
+            elif isinstance(instruction, Iconst4):
+                self.operand_stack.append(4)
+            elif isinstance(instruction, Iconst5):
+                self.operand_stack.append(5)
             else:
                 raise NotImplementedError(instruction)
 
