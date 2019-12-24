@@ -1,6 +1,8 @@
 import logging
 from pathlib import Path
 
+import pytest
+
 from instructions import Getstatic, Ldc, Invokevirtual, Return
 from jvm import ClassFileReader, parse_class_file, VirtualMachine
 
@@ -31,37 +33,19 @@ def test_main_instructions():
         )
 
 
-def test_execute(capsys):
-    with Path("data/Hello.class").open("rb") as f:
+@pytest.mark.parametrize("class_name,lines", [
+    ("Hello", ["Hello World!"]),
+    ("Bonjour", ["Bonjour le monde !"]),
+    ("HelloGoodbye", ["Hello Summer,", "Goodbye"]),
+    ("PrintInt", ["-1", "0", "1", "2", "3", "4", "5"])
+])
+def test_stdout(capsys, class_name, lines):
+    path = Path("data") / f"{class_name}.class"
+    expected_output = "".join(line + "\n" for line in lines)
+
+    with path.open("rb") as f:
         cls = parse_class_file(f)
         vm = VirtualMachine()
         vm.execute_main(cls)
         captured = capsys.readouterr()
-        assert captured.out == "Hello World!\n"
-
-
-def test_execute2(capsys):
-    with Path("data/Bonjour.class").open("rb") as f:
-        cls = parse_class_file(f)
-        vm = VirtualMachine()
-        vm.execute_main(cls)
-        captured = capsys.readouterr()
-        assert captured.out == "Bonjour le monde !\n"
-
-
-def test_execute3(capsys):
-    with Path("data/HelloGoodbye.class").open("rb") as f:
-        cls = parse_class_file(f)
-        vm = VirtualMachine()
-        vm.execute_main(cls)
-        captured = capsys.readouterr()
-        assert captured.out == "Hello Summer,\nGoodbye\n"
-
-
-def test_print_int(capsys):
-    with Path("data/PrintInt.class").open("rb") as f:
-        cls = parse_class_file(f)
-        vm = VirtualMachine()
-        vm.execute_main(cls)
-        captured = capsys.readouterr()
-        assert captured.out == "-1\n0\n1\n2\n3\n4\n5\n"
+        assert captured.out == expected_output
