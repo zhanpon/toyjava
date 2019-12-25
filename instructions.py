@@ -65,6 +65,16 @@ class Iconst5:
     CODE = b"\x08"
 
 
+@dataclass
+class Istore1:
+    CODE = b"<"
+
+
+@dataclass
+class Iload1:
+    CODE = b"\x1b"
+
+
 class InstructionReader:
     def __init__(self, stream: BinaryIO):
         self.stream = stream
@@ -99,6 +109,10 @@ class InstructionReader:
                 yield Iconst4()
             elif code == Iconst5.CODE:
                 yield Iconst5()
+            elif code == Istore1.CODE:
+                yield Istore1()
+            elif code == Iload1.CODE:
+                yield Iload1()
             else:
                 raise NotImplementedError(code)
 

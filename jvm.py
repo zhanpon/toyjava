@@ -1,9 +1,10 @@
 import logging
 from dataclasses import dataclass
+from itertools import repeat
 from typing import BinaryIO, Tuple
 
 from instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Iconst2, IconstM1, Iconst0, Iconst1, \
-    Iconst3, Iconst4, Iconst5
+    Iconst3, Iconst4, Iconst5, Istore1, Iload1
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,9 @@ class VirtualMachine:
         self.operand_stack = []
 
     def execute_main(self, cls):
+        # Assume the number of local variables is not more than 10
+        local_variables = list(repeat(None, 10))
+
         constant_pool = cls.constant_pool
         instructions = cls.main_instructions()
         for instruction in instructions:
@@ -29,8 +33,10 @@ class VirtualMachine:
                 objectref = self.operand_stack.pop()
 
                 field_class = constant_pool[constant_pool[objectref["class_index"]]["name_index"]]["bytes"].decode()
-                field_name = constant_pool[constant_pool[objectref["name_and_type_index"]]["name_index"]]["bytes"].decode()
-                method_name = constant_pool[constant_pool[methodref["name_and_type_index"]]["name_index"]]["bytes"].decode()
+                field_name = constant_pool[constant_pool[objectref["name_and_type_index"]]["name_index"]][
+                    "bytes"].decode()
+                method_name = constant_pool[constant_pool[methodref["name_and_type_index"]]["name_index"]][
+                    "bytes"].decode()
 
                 if field_class == "java/lang/System" and field_name == "out" and method_name == "println":
                     print(arg1)
@@ -53,6 +59,12 @@ class VirtualMachine:
                 self.operand_stack.append(4)
             elif isinstance(instruction, Iconst5):
                 self.operand_stack.append(5)
+            elif isinstance(instruction, Istore1):
+                i = self.operand_stack.pop()
+                local_variables[1] = i
+            elif isinstance(instruction, Iload1):
+                i = local_variables[1]
+                self.operand_stack.append(i)
             else:
                 raise NotImplementedError(instruction)
 
