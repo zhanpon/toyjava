@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-from instructions import Getstatic, Ldc, Invokevirtual, Return
 from jvm import ClassFileReader, parse_class_file, VirtualMachine
 
 
@@ -27,7 +26,8 @@ def test_parse(caplog):
     ("Bonjour", ["Bonjour le monde !"]),
     ("HelloGoodbye", ["Hello Summer,", "Goodbye"]),
     ("PrintInt", ["-1", "0", "1", "2", "3", "4", "5"]),
-    ("LocalVariables", ["1", "2"])
+    ("LocalVariables", ["1", "2"]),
+    ("CountUp", ["0", "1", "2", "3", "4"]),
 ])
 def test_stdout(capsys, class_name, lines):
     path = Path("data") / f"{class_name}.class"

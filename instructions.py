@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from typing import Tuple, BinaryIO, Iterable
 from io import BytesIO
+from typing import Tuple, BinaryIO, Iterable
 
 
 @dataclass
@@ -85,6 +85,25 @@ class Iload2:
     CODE = b"\x1c"
 
 
+@dataclass
+class RawIfIcmpge:
+    CODE = b"\xa2"
+    branchbyte: int
+
+
+@dataclass
+class Iinc:
+    CODE = b"\x84"
+    index: int
+    const: int
+
+
+@dataclass
+class RawGoto:
+    CODE = b"\xa7"
+    branchbyte: int
+
+
 class InstructionReader:
     def __init__(self, stream: BinaryIO):
         self.stream = stream
@@ -127,13 +146,54 @@ class InstructionReader:
                 yield Iload1()
             elif code == Iload2.CODE:
                 yield Iload2()
+            elif code == RawIfIcmpge.CODE:
+                branchbyte = self._read_index(2)
+                yield RawIfIcmpge(branchbyte)
+            elif code == Iinc.CODE:
+                yield Iinc(self._read_index(1), self._read_index(1))
+            elif code == RawGoto.CODE:
+                b = self.stream.read(2)
+                yield RawGoto(int.from_bytes(b, "big", signed=True))
             else:
                 raise NotImplementedError(code)
 
     def read(self):
-        return tuple(self._read())
+        raw_instructions = []
+        positions = [0]
+        for raw_instruction in self._read():
+            raw_instructions.append(raw_instruction)
+            positions.append(self.stream.tell())
+
+        positions.pop()
+
+        return tuple(raw_instructions), positions
+
+
+@dataclass
+class IfIcmpge:
+    index: int
+
+
+@dataclass
+class Goto:
+    index: int
+
+
+def convert(instructions, positions: list):
+    for pos, instruction in zip(positions, instructions):
+        if isinstance(instruction, RawIfIcmpge):
+            branchbyte = pos + instruction.branchbyte
+            index = positions.index(branchbyte)
+            yield IfIcmpge(index)
+        elif isinstance(instruction, RawGoto):
+            branchbyte = pos + instruction.branchbyte
+            index = positions.index(branchbyte)
+            yield Goto(index)
+        else:
+            yield instruction
 
 
 def parse_instructions(code: bytes) -> Tuple:
     reader = InstructionReader(BytesIO(code))
-    return reader.read()
+    instructions, positions = reader.read()
+    return tuple(convert(instructions, positions))

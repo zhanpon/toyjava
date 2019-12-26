@@ -4,7 +4,7 @@ from itertools import repeat
 from typing import BinaryIO, Tuple
 
 from instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Iconst2, IconstM1, Iconst0, Iconst1, \
-    Iconst3, Iconst4, Iconst5, Istore1, Iload1, Istore2, Iload2
+    Iconst3, Iconst4, Iconst5, Istore1, Iload1, Istore2, Iload2, IfIcmpge, Iinc, Goto
 
 logger = logging.getLogger(__name__)
 
@@ -14,10 +14,12 @@ class VirtualMachine:
         # Assume the number of local variables is not more than 10
         local_variables = list(repeat(None, 10))
         operand_stack = []
+        pc = 0
 
         constant_pool = cls.constant_pool
         instructions = cls.main_instructions()
-        for instruction in instructions:
+        while True:
+            instruction = instructions[pc]
             if isinstance(instruction, Getstatic):
                 operand_stack.append(constant_pool[instruction.index])
             elif isinstance(instruction, Ldc):
@@ -69,8 +71,21 @@ class VirtualMachine:
             elif isinstance(instruction, Iload2):
                 i = local_variables[2]
                 operand_stack.append(i)
+            elif isinstance(instruction, IfIcmpge):
+                v1 = operand_stack.pop()
+                v2 = operand_stack.pop()
+                if v2 >= v1:
+                    pc = instruction.index
+                    continue
+            elif isinstance(instruction, Iinc):
+                local_variables[instruction.index] += instruction.const
+            elif isinstance(instruction, Goto):
+                pc = instruction.index
+                continue
             else:
                 raise NotImplementedError(instruction)
+
+            pc += 1
 
 
 @dataclass(frozen=True)
