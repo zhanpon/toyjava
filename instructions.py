@@ -71,8 +71,18 @@ class Istore1:
 
 
 @dataclass
+class Istore2:
+    CODE = b"="
+
+
+@dataclass
 class Iload1:
     CODE = b"\x1b"
+
+
+@dataclass
+class Iload2:
+    CODE = b"\x1c"
 
 
 class InstructionReader:
@@ -111,8 +121,12 @@ class InstructionReader:
                 yield Iconst5()
             elif code == Istore1.CODE:
                 yield Istore1()
+            elif code == Istore2.CODE:
+                yield Istore2()
             elif code == Iload1.CODE:
                 yield Iload1()
+            elif code == Iload2.CODE:
+                yield Iload2()
             else:
                 raise NotImplementedError(code)
 

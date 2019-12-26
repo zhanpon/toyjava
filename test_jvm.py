@@ -38,7 +38,7 @@ def test_main_instructions():
     ("Bonjour", ["Bonjour le monde !"]),
     ("HelloGoodbye", ["Hello Summer,", "Goodbye"]),
     ("PrintInt", ["-1", "0", "1", "2", "3", "4", "5"]),
-    ("LocalVariables", ["2"])
+    ("LocalVariables", ["1", "2"])
 ])
 def test_stdout(capsys, class_name, lines):
     path = Path("data") / f"{class_name}.class"
