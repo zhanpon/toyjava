@@ -6,7 +6,7 @@ from io import BytesIO
 @dataclass
 class Getstatic:
     """
-    https://docs.oracle.com/javase/specs/jvms/se11/html/jvms-6.html#jvms-6.5.getstatic
+    https://docs.oracle.com/javase/specs/jvms/se13/html/jvms-6.html#jvms-6.5.getstatic
     """
 
     CODE = b"\xb2"

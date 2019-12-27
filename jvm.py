@@ -78,7 +78,7 @@ class VirtualMachine:
 @dataclass(frozen=True)
 class ClassFile:
     """
-    https://docs.oracle.com/javase/specs/jvms/se11/html/jvms-4.html#jvms-4.1
+    https://docs.oracle.com/javase/specs/jvms/se13/html/jvms-4.html#jvms-4.1
     """
 
     magic: int
@@ -175,7 +175,7 @@ class ClassFileReader:
 
 class ConstantPoolReader:
     """
-    https://docs.oracle.com/javase/specs/jvms/se11/html/jvms-4.html#jvms-4.4
+    https://docs.oracle.com/javase/specs/jvms/se13/html/jvms-4.html#jvms-4.4
     """
 
     def __init__(self, reader: ClassFileReader, constant_pool_count: int):
@@ -258,7 +258,7 @@ class MethodsReader:
 
     def _next(self):
         """
-        https://docs.oracle.com/javase/specs/jvms/se11/html/jvms-4.html#jvms-4.6
+        https://docs.oracle.com/javase/specs/jvms/se13/html/jvms-4.html#jvms-4.6
         """
 
         access_flags = self.reader.next_u2()
@@ -274,7 +274,7 @@ class MethodsReader:
         logger.debug(f"Read the field 'attributes_count': {attributes_count}")
 
         # Assume it is CodeAttribute:
-        # https://docs.oracle.com/javase/specs/jvms/se11/html/jvms-4.html#jvms-4.7.3
+        # https://docs.oracle.com/javase/specs/jvms/se13/html/jvms-4.html#jvms-4.7.3
         assert attributes_count == 1
 
         attribute_name_index = self.reader.next_u2()
