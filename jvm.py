@@ -10,27 +10,25 @@ logger = logging.getLogger(__name__)
 
 
 class VirtualMachine:
-    def __init__(self):
-        self.operand_stack = []
-
     def execute_main(self, cls):
         # Assume the number of local variables is not more than 10
         local_variables = list(repeat(None, 10))
+        operand_stack = []
 
         constant_pool = cls.constant_pool
         instructions = cls.main_instructions()
         for instruction in instructions:
             if isinstance(instruction, Getstatic):
-                self.operand_stack.append(constant_pool[instruction.index])
+                operand_stack.append(constant_pool[instruction.index])
             elif isinstance(instruction, Ldc):
                 # Assume it is a String constant
                 value = constant_pool[constant_pool[instruction.index]["string_index"]]["bytes"].decode()
-                self.operand_stack.append(value)
+                operand_stack.append(value)
             elif isinstance(instruction, Invokevirtual):
                 # Assume the method only has one argument
                 methodref = constant_pool[instruction.index]
-                arg1 = self.operand_stack.pop()
-                objectref = self.operand_stack.pop()
+                arg1 = operand_stack.pop()
+                objectref = operand_stack.pop()
 
                 field_class = constant_pool[constant_pool[objectref["class_index"]]["name_index"]]["bytes"].decode()
                 field_name = constant_pool[constant_pool[objectref["name_and_type_index"]]["name_index"]][
@@ -46,31 +44,31 @@ class VirtualMachine:
             elif isinstance(instruction, Return):
                 return
             elif isinstance(instruction, IconstM1):
-                self.operand_stack.append(-1)
+                operand_stack.append(-1)
             elif isinstance(instruction, Iconst0):
-                self.operand_stack.append(0)
+                operand_stack.append(0)
             elif isinstance(instruction, Iconst1):
-                self.operand_stack.append(1)
+                operand_stack.append(1)
             elif isinstance(instruction, Iconst2):
-                self.operand_stack.append(2)
+                operand_stack.append(2)
             elif isinstance(instruction, Iconst3):
-                self.operand_stack.append(3)
+                operand_stack.append(3)
             elif isinstance(instruction, Iconst4):
-                self.operand_stack.append(4)
+                operand_stack.append(4)
             elif isinstance(instruction, Iconst5):
-                self.operand_stack.append(5)
+                operand_stack.append(5)
             elif isinstance(instruction, Istore1):
-                i = self.operand_stack.pop()
+                i = operand_stack.pop()
                 local_variables[1] = i
             elif isinstance(instruction, Istore2):
-                i = self.operand_stack.pop()
+                i = operand_stack.pop()
                 local_variables[2] = i
             elif isinstance(instruction, Iload1):
                 i = local_variables[1]
-                self.operand_stack.append(i)
+                operand_stack.append(i)
             elif isinstance(instruction, Iload2):
                 i = local_variables[2]
-                self.operand_stack.append(i)
+                operand_stack.append(i)
             else:
                 raise NotImplementedError(instruction)
 
