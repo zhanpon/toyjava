@@ -22,17 +22,6 @@ def test_parse(caplog):
         assert len(result.constant_pool) == result.constant_pool_count
 
 
-def test_main_instructions():
-    with Path("data/Hello.class").open("rb") as f:
-        result = parse_class_file(f)
-        assert result.main_instructions() == (
-            Getstatic(2),
-            Ldc(3),
-            Invokevirtual(4),
-            Return(),
-        )
-
-
 @pytest.mark.parametrize("class_name,lines", [
     ("Hello", ["Hello World!"]),
     ("Bonjour", ["Bonjour le monde !"]),
