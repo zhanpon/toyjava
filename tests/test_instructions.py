@@ -1,4 +1,4 @@
-from instructions import *
+from toyjava.instructions import *
 
 
 def test_parse_instructions():

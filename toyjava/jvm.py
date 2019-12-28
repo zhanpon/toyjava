@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from itertools import repeat
 from typing import BinaryIO, Tuple
 
-from instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Istore1, Iload1, Istore2, Iload2, \
+from toyjava.instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Istore1, Iload1, Istore2, Iload2, \
     IfIcmpge, Iinc, Goto, Push
 
 logger = logging.getLogger(__name__)

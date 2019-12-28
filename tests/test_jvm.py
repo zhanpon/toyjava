@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from jvm import ClassFileReader, parse_class_file, VirtualMachine
+from toyjava.jvm import ClassFileReader, parse_class_file, VirtualMachine
 
 
 def test_class_file_reader():
