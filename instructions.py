@@ -2,6 +2,14 @@ from dataclasses import dataclass
 from io import BytesIO
 from typing import Tuple, BinaryIO, Iterable
 
+CODE_iconst_m1 = b"\x02"
+CODE_iconst_0 = b"\x03"
+CODE_iconst_1 = b"\x04"
+CODE_iconst_2 = b"\x05"
+CODE_iconst_3 = b"\x06"
+CODE_iconst_4 = b"\x07"
+CODE_iconst_5 = b"\x08"
+
 
 @dataclass
 class Getstatic:
@@ -31,38 +39,8 @@ class Return:
 
 
 @dataclass
-class IconstM1:
-    CODE = b"\x02"
-
-
-@dataclass
-class Iconst0:
-    CODE = b"\x03"
-
-
-@dataclass
-class Iconst1:
-    CODE = b"\x04"
-
-
-@dataclass
-class Iconst2:
-    CODE = b"\x05"
-
-
-@dataclass
-class Iconst3:
-    CODE = b"\x06"
-
-
-@dataclass
-class Iconst4:
-    CODE = b"\x07"
-
-
-@dataclass
-class Iconst5:
-    CODE = b"\x08"
+class Push:
+    value: int
 
 
 @dataclass
@@ -124,20 +102,20 @@ class InstructionReader:
                 yield Invokevirtual(self._read_index(2))
             elif code == Return.CODE:
                 yield Return()
-            elif code == IconstM1.CODE:
-                yield IconstM1()
-            elif code == Iconst0.CODE:
-                yield Iconst0()
-            elif code == Iconst1.CODE:
-                yield Iconst1()
-            elif code == Iconst2.CODE:
-                yield Iconst2()
-            elif code == Iconst3.CODE:
-                yield Iconst3()
-            elif code == Iconst4.CODE:
-                yield Iconst4()
-            elif code == Iconst5.CODE:
-                yield Iconst5()
+            elif code == CODE_iconst_m1:
+                yield Push(-1)
+            elif code == CODE_iconst_0:
+                yield Push(0)
+            elif code == CODE_iconst_1:
+                yield Push(1)
+            elif code == CODE_iconst_2:
+                yield Push(2)
+            elif code == CODE_iconst_3:
+                yield Push(3)
+            elif code == CODE_iconst_4:
+                yield Push(4)
+            elif code == CODE_iconst_5:
+                yield Push(5)
             elif code == Istore1.CODE:
                 yield Istore1()
             elif code == Istore2.CODE:

@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from itertools import repeat
 from typing import BinaryIO, Tuple
 
-from instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Iconst2, IconstM1, Iconst0, Iconst1, \
-    Iconst3, Iconst4, Iconst5, Istore1, Iload1, Istore2, Iload2, IfIcmpge, Iinc, Goto
+from instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Istore1, Iload1, Istore2, Iload2, \
+    IfIcmpge, Iinc, Goto, Push
 
 logger = logging.getLogger(__name__)
 
@@ -45,20 +45,8 @@ class VirtualMachine:
 
             elif isinstance(instruction, Return):
                 return
-            elif isinstance(instruction, IconstM1):
-                operand_stack.append(-1)
-            elif isinstance(instruction, Iconst0):
-                operand_stack.append(0)
-            elif isinstance(instruction, Iconst1):
-                operand_stack.append(1)
-            elif isinstance(instruction, Iconst2):
-                operand_stack.append(2)
-            elif isinstance(instruction, Iconst3):
-                operand_stack.append(3)
-            elif isinstance(instruction, Iconst4):
-                operand_stack.append(4)
-            elif isinstance(instruction, Iconst5):
-                operand_stack.append(5)
+            elif isinstance(instruction, Push):
+                operand_stack.append(instruction.value)
             elif isinstance(instruction, Istore1):
                 i = operand_stack.pop()
                 local_variables[1] = i

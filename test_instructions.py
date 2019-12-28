@@ -14,10 +14,10 @@ def test_parse_instructions():
 def test_parse_instructions2():
     code = bytes.fromhex("03 3c 1b 08 a20010 b20007 1b b6000d 840101 a7fff1 b1")
     assert parse_instructions(code) == (
-        Iconst0(),
+        Push(0),
         Istore1(),
         Iload1(),
-        Iconst5(),
+        Push(5),
         IfIcmpge(index=10),
         Getstatic(index=7),
         Iload1(),
@@ -32,10 +32,10 @@ def test_instruction_reader():
     code = bytes.fromhex("03 3c 1b 08 a20010 b20007 1b b6000d 840101 a7fff1 b1")
     raw_instructions, positions = InstructionReader(BytesIO(code)).read()
     assert raw_instructions == (
-        Iconst0(),
+        Push(0),
         Istore1(),
         Iload1(),
-        Iconst5(),
+        Push(5),
         RawIfIcmpge(branchbyte=16),
         Getstatic(index=7),
         Iload1(),
