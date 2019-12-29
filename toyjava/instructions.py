@@ -1,6 +1,7 @@
+import operator as op
 from dataclasses import dataclass
 from io import BytesIO
-from typing import Tuple, BinaryIO, Iterable
+from typing import Tuple, BinaryIO, Iterable, Callable
 
 CODE_iconst_m1 = b"\x02"
 CODE_iconst_0 = b"\x03"
@@ -10,6 +11,8 @@ CODE_iconst_3 = b"\x06"
 CODE_iconst_4 = b"\x07"
 CODE_iconst_5 = b"\x08"
 CODE_bipush = b"\x10"
+CODE_if_icmpge = b"\xa2"
+CODE_if_icmpgt = b"\xa3"
 
 
 @dataclass
@@ -65,15 +68,9 @@ class Iload2:
 
 
 @dataclass
-class RawIfIcmpge:
-    CODE = b"\xa2"
-    branchbyte: int
-
-
-@dataclass
-class RawIfIcmpgt:
-    CODE = b'\xa3'
-    branchbyte: int
+class UnresolvedBranchIf2:
+    offset: int
+    predicate: Callable[[int, int], bool]
 
 
 @dataclass
@@ -152,12 +149,10 @@ class InstructionReader:
             elif code == RawIfne.CODE:
                 branchbyte = self._read_index(2)
                 yield RawIfne(branchbyte)
-            elif code == RawIfIcmpge.CODE:
-                branchbyte = self._read_index(2)
-                yield RawIfIcmpge(branchbyte)
-            elif code == RawIfIcmpgt.CODE:
-                branchbyte = self._read_index(2)
-                yield RawIfIcmpgt(branchbyte)
+            elif code == CODE_if_icmpge:
+                yield UnresolvedBranchIf2(offset=self._read_sint(2), predicate=op.ge)
+            elif code == CODE_if_icmpgt:
+                yield UnresolvedBranchIf2(offset=self._read_sint(2), predicate=op.gt)
             elif code == Iinc.CODE:
                 yield Iinc(self._read_index(1), self._read_index(1))
             elif code == RawGoto.CODE:
@@ -184,6 +179,12 @@ class Ifne:
 
 
 @dataclass
+class BranchIf2:
+    index: int
+    predicate: Callable[[int, int], bool]
+
+
+@dataclass
 class IfIcmpge:
     index: int
 
@@ -204,14 +205,10 @@ def convert(instructions, positions: list):
             branchbyte = pos + instruction.branchbyte
             index = positions.index(branchbyte)
             yield Ifne(index)
-        elif isinstance(instruction, RawIfIcmpge):
-            branchbyte = pos + instruction.branchbyte
+        elif isinstance(instruction, UnresolvedBranchIf2):
+            branchbyte = pos + instruction.offset
             index = positions.index(branchbyte)
-            yield IfIcmpge(index)
-        elif isinstance(instruction, RawIfIcmpgt):
-            branchbyte = pos + instruction.branchbyte
-            index = positions.index(branchbyte)
-            yield IfIcmpgt(index)
+            yield BranchIf2(index, instruction.predicate)
         elif isinstance(instruction, RawGoto):
             branchbyte = pos + instruction.branchbyte
             index = positions.index(branchbyte)

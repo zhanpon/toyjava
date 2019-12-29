@@ -5,7 +5,7 @@ from typing import BinaryIO, Tuple
 
 from toyjava.instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Istore1, Iload1, Istore2, \
     Iload2, \
-    IfIcmpge, Iinc, Goto, Push, IfIcmpgt, Irem, Ifne
+    Iinc, Goto, Push, Irem, Ifne, BranchIf2
 
 logger = logging.getLogger(__name__)
 
@@ -69,16 +69,10 @@ class VirtualMachine:
                 if value != 0:
                     pc = instruction.index
                     continue
-            elif isinstance(instruction, IfIcmpge):
-                v1 = operand_stack.pop()
+            elif isinstance(instruction, BranchIf2):
                 v2 = operand_stack.pop()
-                if v2 >= v1:
-                    pc = instruction.index
-                    continue
-            elif isinstance(instruction, IfIcmpgt):
                 v1 = operand_stack.pop()
-                v2 = operand_stack.pop()
-                if v2 > v1:
+                if instruction.predicate(v1, v2):
                     pc = instruction.index
                     continue
             elif isinstance(instruction, Iinc):
