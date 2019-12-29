@@ -3,8 +3,9 @@ from dataclasses import dataclass
 from itertools import repeat
 from typing import BinaryIO, Tuple
 
-from toyjava.instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Istore1, Iload1, Istore2, Iload2, \
-    IfIcmpge, Iinc, Goto, Push
+from toyjava.instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Istore1, Iload1, Istore2, \
+    Iload2, \
+    IfIcmpge, Iinc, Goto, Push, IfIcmpgt, Irem, Ifne
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,10 @@ class VirtualMachine:
                 return
             elif isinstance(instruction, Push):
                 operand_stack.append(instruction.value)
+            elif isinstance(instruction, Irem):
+                value2 = operand_stack.pop()
+                value1 = operand_stack.pop()
+                operand_stack.append(value1 % value2)
             elif isinstance(instruction, Istore1):
                 i = operand_stack.pop()
                 local_variables[1] = i
@@ -59,10 +64,21 @@ class VirtualMachine:
             elif isinstance(instruction, Iload2):
                 i = local_variables[2]
                 operand_stack.append(i)
+            elif isinstance(instruction, Ifne):
+                value = operand_stack.pop()
+                if value != 0:
+                    pc = instruction.index
+                    continue
             elif isinstance(instruction, IfIcmpge):
                 v1 = operand_stack.pop()
                 v2 = operand_stack.pop()
                 if v2 >= v1:
+                    pc = instruction.index
+                    continue
+            elif isinstance(instruction, IfIcmpgt):
+                v1 = operand_stack.pop()
+                v2 = operand_stack.pop()
+                if v2 > v1:
                     pc = instruction.index
                     continue
             elif isinstance(instruction, Iinc):

@@ -9,6 +9,7 @@ CODE_iconst_2 = b"\x05"
 CODE_iconst_3 = b"\x06"
 CODE_iconst_4 = b"\x07"
 CODE_iconst_5 = b"\x08"
+CODE_bipush = b"\x10"
 
 
 @dataclass
@@ -70,10 +71,27 @@ class RawIfIcmpge:
 
 
 @dataclass
+class RawIfIcmpgt:
+    CODE = b'\xa3'
+    branchbyte: int
+
+
+@dataclass
+class RawIfne:
+    CODE = b"\x9a"
+    branchbyte: int
+
+
+@dataclass
 class Iinc:
     CODE = b"\x84"
     index: int
     const: int
+
+
+@dataclass
+class Irem:
+    CODE = b"p"
 
 
 @dataclass
@@ -88,6 +106,9 @@ class InstructionReader:
 
     def _read_index(self, bytes_length: int) -> int:
         return int.from_bytes(self.stream.read(bytes_length), "big")
+
+    def _read_sint(self, bytes_length: int) -> int:
+        return int.from_bytes(self.stream.read(bytes_length), "big", signed=True)
 
     def _read(self) -> Iterable:
         while True:
@@ -116,6 +137,10 @@ class InstructionReader:
                 yield Push(4)
             elif code == CODE_iconst_5:
                 yield Push(5)
+            elif code == Irem.CODE:
+                yield Irem()
+            elif code == CODE_bipush:
+                yield Push(self._read_sint(1))
             elif code == Istore1.CODE:
                 yield Istore1()
             elif code == Istore2.CODE:
@@ -124,9 +149,15 @@ class InstructionReader:
                 yield Iload1()
             elif code == Iload2.CODE:
                 yield Iload2()
+            elif code == RawIfne.CODE:
+                branchbyte = self._read_index(2)
+                yield RawIfne(branchbyte)
             elif code == RawIfIcmpge.CODE:
                 branchbyte = self._read_index(2)
                 yield RawIfIcmpge(branchbyte)
+            elif code == RawIfIcmpgt.CODE:
+                branchbyte = self._read_index(2)
+                yield RawIfIcmpgt(branchbyte)
             elif code == Iinc.CODE:
                 yield Iinc(self._read_index(1), self._read_index(1))
             elif code == RawGoto.CODE:
@@ -148,7 +179,17 @@ class InstructionReader:
 
 
 @dataclass
+class Ifne:
+    index: int
+
+
+@dataclass
 class IfIcmpge:
+    index: int
+
+
+@dataclass
+class IfIcmpgt:
     index: int
 
 
@@ -159,10 +200,18 @@ class Goto:
 
 def convert(instructions, positions: list):
     for pos, instruction in zip(positions, instructions):
-        if isinstance(instruction, RawIfIcmpge):
+        if isinstance(instruction, RawIfne):
+            branchbyte = pos + instruction.branchbyte
+            index = positions.index(branchbyte)
+            yield Ifne(index)
+        elif isinstance(instruction, RawIfIcmpge):
             branchbyte = pos + instruction.branchbyte
             index = positions.index(branchbyte)
             yield IfIcmpge(index)
+        elif isinstance(instruction, RawIfIcmpgt):
+            branchbyte = pos + instruction.branchbyte
+            index = positions.index(branchbyte)
+            yield IfIcmpgt(index)
         elif isinstance(instruction, RawGoto):
             branchbyte = pos + instruction.branchbyte
             index = positions.index(branchbyte)
