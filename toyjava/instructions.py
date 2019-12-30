@@ -43,6 +43,11 @@ class Return:
 
 
 @dataclass
+class Ireturn:
+    CODE = b"\xac"
+
+
+@dataclass
 class Push:
     value: int
 
@@ -55,6 +60,11 @@ class Istore1:
 @dataclass
 class Istore2:
     CODE = b"="
+
+
+@dataclass
+class Iload0:
+    CODE = b"\x1a"
 
 
 @dataclass
@@ -87,6 +97,11 @@ class Iinc:
 
 
 @dataclass
+class Iadd:
+    CODE = b'`'
+
+
+@dataclass
 class Irem:
     CODE = b"p"
 
@@ -95,6 +110,12 @@ class Irem:
 class RawGoto:
     CODE = b"\xa7"
     branchbyte: int
+
+
+@dataclass
+class InvokeStatic:
+    CODE = b"\xb8"
+    index: int
 
 
 class InstructionReader:
@@ -118,8 +139,12 @@ class InstructionReader:
                 yield Ldc(self._read_index(1))
             elif code == Invokevirtual.CODE:
                 yield Invokevirtual(self._read_index(2))
+            elif code == InvokeStatic.CODE:
+                yield InvokeStatic(self._read_index(2))
             elif code == Return.CODE:
                 yield Return()
+            elif code == Ireturn.CODE:
+                yield Ireturn()
             elif code == CODE_iconst_m1:
                 yield Push(-1)
             elif code == CODE_iconst_0:
@@ -136,12 +161,16 @@ class InstructionReader:
                 yield Push(5)
             elif code == Irem.CODE:
                 yield Irem()
+            elif code == Iadd.CODE:
+                yield Iadd()
             elif code == CODE_bipush:
                 yield Push(self._read_sint(1))
             elif code == Istore1.CODE:
                 yield Istore1()
             elif code == Istore2.CODE:
                 yield Istore2()
+            elif code == Iload0.CODE:
+                yield Iload0()
             elif code == Iload1.CODE:
                 yield Iload1()
             elif code == Iload2.CODE:

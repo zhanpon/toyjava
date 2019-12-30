@@ -5,7 +5,7 @@ from typing import BinaryIO, Tuple
 
 from toyjava.instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Istore1, Iload1, Istore2, \
     Iload2, \
-    Iinc, Goto, Push, Irem, Ifne, BranchIf2
+    Iinc, Goto, Push, Irem, Ifne, BranchIf2, InvokeStatic, Iload0, Iadd, Ireturn
 
 logger = logging.getLogger(__name__)
 
@@ -14,76 +14,99 @@ class VirtualMachine:
     def execute_main(self, cls):
         # Assume the number of local variables is not more than 10
         local_variables = list(repeat(None, 10))
-        operand_stack = []
-        pc = 0
-
-        constant_pool = cls.constant_pool
         instructions = cls.main_instructions()
-        while True:
-            instruction = instructions[pc]
-            if isinstance(instruction, Getstatic):
-                operand_stack.append(constant_pool[instruction.index])
-            elif isinstance(instruction, Ldc):
-                # Assume it is a String constant
-                value = constant_pool[constant_pool[instruction.index]["string_index"]]["bytes"].decode()
-                operand_stack.append(value)
-            elif isinstance(instruction, Invokevirtual):
-                # Assume the method only has one argument
-                methodref = constant_pool[instruction.index]
-                arg1 = operand_stack.pop()
-                objectref = operand_stack.pop()
+        execute(instructions, cls, local_variables)
 
-                field_class = constant_pool[constant_pool[objectref["class_index"]]["name_index"]]["bytes"].decode()
-                field_name = constant_pool[constant_pool[objectref["name_and_type_index"]]["name_index"]][
-                    "bytes"].decode()
-                method_name = constant_pool[constant_pool[methodref["name_and_type_index"]]["name_index"]][
-                    "bytes"].decode()
 
-                if field_class == "java/lang/System" and field_name == "out" and method_name == "println":
-                    print(arg1)
-                else:
-                    raise NotImplementedError("'invokevirtual' is not implemented except System.out.println")
+def execute(instructions, cls, local_variables):
+    constant_pool = cls.constant_pool
+    pc = 0
+    operand_stack = []
+    while True:
+        instruction = instructions[pc]
+        if isinstance(instruction, Getstatic):
+            operand_stack.append(constant_pool[instruction.index])
+        elif isinstance(instruction, Ldc):
+            # Assume it is a String constant
+            value = constant_pool[constant_pool[instruction.index]["string_index"]]["bytes"].decode()
+            operand_stack.append(value)
+        elif isinstance(instruction, Invokevirtual):
+            # Assume the method only has one argument
+            methodref = constant_pool[instruction.index]
+            arg1 = operand_stack.pop()
+            objectref = operand_stack.pop()
 
-            elif isinstance(instruction, Return):
-                return
-            elif isinstance(instruction, Push):
-                operand_stack.append(instruction.value)
-            elif isinstance(instruction, Irem):
-                value2 = operand_stack.pop()
-                value1 = operand_stack.pop()
-                operand_stack.append(value1 % value2)
-            elif isinstance(instruction, Istore1):
-                i = operand_stack.pop()
-                local_variables[1] = i
-            elif isinstance(instruction, Istore2):
-                i = operand_stack.pop()
-                local_variables[2] = i
-            elif isinstance(instruction, Iload1):
-                i = local_variables[1]
-                operand_stack.append(i)
-            elif isinstance(instruction, Iload2):
-                i = local_variables[2]
-                operand_stack.append(i)
-            elif isinstance(instruction, Ifne):
-                value = operand_stack.pop()
-                if value != 0:
-                    pc = instruction.index
-                    continue
-            elif isinstance(instruction, BranchIf2):
-                v2 = operand_stack.pop()
-                v1 = operand_stack.pop()
-                if instruction.predicate(v1, v2):
-                    pc = instruction.index
-                    continue
-            elif isinstance(instruction, Iinc):
-                local_variables[instruction.index] += instruction.const
-            elif isinstance(instruction, Goto):
+            field_class = constant_pool[constant_pool[objectref["class_index"]]["name_index"]]["bytes"].decode()
+            field_name = constant_pool[constant_pool[objectref["name_and_type_index"]]["name_index"]][
+                "bytes"].decode()
+            method_name = constant_pool[constant_pool[methodref["name_and_type_index"]]["name_index"]][
+                "bytes"].decode()
+
+            if field_class == "java/lang/System" and field_name == "out" and method_name == "println":
+                print(arg1)
+            else:
+                raise NotImplementedError("'invokevirtual' is not implemented except System.out.println")
+        elif isinstance(instruction, InvokeStatic):
+            # stub
+            methodref = constant_pool[instruction.index]
+            method_name = constant_pool[constant_pool[methodref["name_and_type_index"]]["name_index"]][
+                "bytes"].decode()
+
+            next_instructions = cls.find_instructions(method_name)
+
+            arg2 = operand_stack.pop()
+            arg1 = operand_stack.pop()
+            return_value = execute(next_instructions, cls, [arg1, arg2])
+            operand_stack.append(return_value)
+        elif isinstance(instruction, Return):
+            return
+        elif isinstance(instruction, Ireturn):
+            return operand_stack.pop()
+        elif isinstance(instruction, Push):
+            operand_stack.append(instruction.value)
+        elif isinstance(instruction, Iadd):
+            value2 = operand_stack.pop()
+            value1 = operand_stack.pop()
+            operand_stack.append(value1 + value2)
+        elif isinstance(instruction, Irem):
+            value2 = operand_stack.pop()
+            value1 = operand_stack.pop()
+            operand_stack.append(value1 % value2)
+        elif isinstance(instruction, Istore1):
+            i = operand_stack.pop()
+            local_variables[1] = i
+        elif isinstance(instruction, Istore2):
+            i = operand_stack.pop()
+            local_variables[2] = i
+        elif isinstance(instruction, Iload0):
+            i = local_variables[0]
+            operand_stack.append(i)
+        elif isinstance(instruction, Iload1):
+            i = local_variables[1]
+            operand_stack.append(i)
+        elif isinstance(instruction, Iload2):
+            i = local_variables[2]
+            operand_stack.append(i)
+        elif isinstance(instruction, Ifne):
+            value = operand_stack.pop()
+            if value != 0:
                 pc = instruction.index
                 continue
-            else:
-                raise NotImplementedError(instruction)
+        elif isinstance(instruction, BranchIf2):
+            v2 = operand_stack.pop()
+            v1 = operand_stack.pop()
+            if instruction.predicate(v1, v2):
+                pc = instruction.index
+                continue
+        elif isinstance(instruction, Iinc):
+            local_variables[instruction.index] += instruction.const
+        elif isinstance(instruction, Goto):
+            pc = instruction.index
+            continue
+        else:
+            raise NotImplementedError(instruction)
 
-            pc += 1
+        pc += 1
 
 
 @dataclass(frozen=True)
@@ -97,15 +120,18 @@ class ClassFile:
     constant_pool: tuple
     methods: tuple
 
-    def _main_method(self):
+    def find_method(self, name):
         for m in self.methods:
             utf8 = self.constant_pool[m.name_index]
-            if utf8["bytes"].decode() == "main":
+            if utf8["bytes"].decode() == name:
                 return m
 
+    def find_instructions(self, name):
+        code = self.find_method(name).code
+        return parse_instructions(code)
+
     def main_instructions(self):
-        main_code = self._main_method().code
-        return parse_instructions(main_code)
+        return self.find_instructions("main")
 
 
 def parse_class_file(stream: BinaryIO) -> ClassFile:

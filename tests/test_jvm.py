@@ -29,7 +29,8 @@ def test_parse(caplog):
     ("LocalVariables", ["1", "2"]),
     ("CountUp", ["0", "1", "2", "3", "4"]),
     ("FizzBuzz", ["1", "2", "Fizz", "4", "Buzz", "Fizz", "7", "8", "Fizz", "Buzz",
-                  "11", "Fizz", "13", "14", "FizzBuzz", "16", "17", "Fizz", "19", "Buzz"])
+                  "11", "Fizz", "13", "14", "FizzBuzz", "16", "17", "Fizz", "19", "Buzz"]),
+    ("StaticMethod", ["3"]),
 ])
 def test_stdout(capsys, class_name, lines):
     path = Path("data") / f"{class_name}.class"
