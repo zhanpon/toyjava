@@ -50,13 +50,19 @@ def execute(instructions, cls, local_variables):
         elif isinstance(instruction, InvokeStatic):
             # stub
             methodref = constant_pool[instruction.index]
-            method_name = constant_pool[constant_pool[methodref["name_and_type_index"]]["name_index"]]
+            name_and_type = constant_pool[methodref["name_and_type_index"]]
+            descriptor = constant_pool[name_and_type["descriptor_index"]]
+            # https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3.3
+            num_args = sum(1 for c in descriptor[1:descriptor.find(")")] if c in ["I", "L"])
+            method_name = constant_pool[name_and_type["name_index"]]
 
             next_instructions = cls.find_instructions(method_name)
 
-            arg2 = operand_stack.pop()
-            arg1 = operand_stack.pop()
-            return_value = execute(next_instructions, cls, [arg1, arg2])
+            args = operand_stack[-num_args:]
+            for _ in range(num_args):
+                operand_stack.pop()
+
+            return_value = execute(next_instructions, cls, args)
             operand_stack.append(return_value)
         elif isinstance(instruction, Return):
             return
