@@ -13,6 +13,8 @@ CODE_iconst_5 = b"\x08"
 CODE_bipush = b"\x10"
 CODE_if_icmpge = b"\xa2"
 CODE_if_icmpgt = b"\xa3"
+CODE_iadd = b"`"
+CODE_irem = b"p"
 
 
 @dataclass
@@ -97,13 +99,8 @@ class Iinc:
 
 
 @dataclass
-class Iadd:
-    CODE = b'`'
-
-
-@dataclass
-class Irem:
-    CODE = b"p"
+class Arithmetic2:
+    function: Callable[[int, int], int]
 
 
 @dataclass
@@ -159,10 +156,10 @@ class InstructionReader:
                 yield Push(4)
             elif code == CODE_iconst_5:
                 yield Push(5)
-            elif code == Irem.CODE:
-                yield Irem()
-            elif code == Iadd.CODE:
-                yield Iadd()
+            elif code == CODE_irem:
+                yield Arithmetic2(function=op.mod)
+            elif code == CODE_iadd:
+                yield Arithmetic2(function=op.add)
             elif code == CODE_bipush:
                 yield Push(self._read_sint(1))
             elif code == Istore1.CODE:

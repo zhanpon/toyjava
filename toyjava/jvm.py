@@ -5,7 +5,7 @@ from typing import BinaryIO, Tuple
 
 from toyjava.instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Istore1, Iload1, Istore2, \
     Iload2, \
-    Iinc, Goto, Push, Irem, Ifne, BranchIf2, InvokeStatic, Iload0, Iadd, Ireturn
+    Iinc, Goto, Push, Ifne, BranchIf2, InvokeStatic, Iload0, Ireturn, Arithmetic2
 
 logger = logging.getLogger(__name__)
 
@@ -64,14 +64,10 @@ def execute(instructions, cls, local_variables):
             return operand_stack.pop()
         elif isinstance(instruction, Push):
             operand_stack.append(instruction.value)
-        elif isinstance(instruction, Iadd):
+        elif isinstance(instruction, Arithmetic2):
             value2 = operand_stack.pop()
             value1 = operand_stack.pop()
-            operand_stack.append(value1 + value2)
-        elif isinstance(instruction, Irem):
-            value2 = operand_stack.pop()
-            value1 = operand_stack.pop()
-            operand_stack.append(value1 % value2)
+            operand_stack.append(instruction.function(value1, value2))
         elif isinstance(instruction, Istore1):
             i = operand_stack.pop()
             local_variables[1] = i
