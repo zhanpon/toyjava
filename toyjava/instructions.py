@@ -14,6 +14,8 @@ CODE_bipush = b"\x10"
 CODE_if_icmpge = b"\xa2"
 CODE_if_icmpgt = b"\xa3"
 CODE_iadd = b"`"
+CODE_isub = b"d"
+CODE_imul = b"h"
 CODE_irem = b"p"
 
 
@@ -160,6 +162,10 @@ class InstructionReader:
                 yield Arithmetic2(function=op.mod)
             elif code == CODE_iadd:
                 yield Arithmetic2(function=op.add)
+            elif code == CODE_isub:
+                yield Arithmetic2(function=op.sub)
+            elif code == CODE_imul:
+                yield Arithmetic2(function=op.mul)
             elif code == CODE_bipush:
                 yield Push(self._read_sint(1))
             elif code == Istore1.CODE:
