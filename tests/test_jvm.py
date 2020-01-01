@@ -12,15 +12,6 @@ def test_class_file_reader():
         assert reader.next_u4() == int("0xCAFEBABE", 0)
 
 
-def test_parse(caplog):
-    caplog.set_level(logging.DEBUG)
-
-    with Path("data/Hello.class").open("rb") as f:
-        result = parse_class_file(f)
-        assert result.magic == int("0xCAFEBABE", 0)
-        assert len(result.constant_pool) == result.constant_pool_count
-
-
 @pytest.mark.parametrize("class_name,lines", [
     ("Hello", ["Hello World!"]),
     ("Bonjour", ["Bonjour le monde !"]),
