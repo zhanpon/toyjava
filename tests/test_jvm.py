@@ -27,9 +27,8 @@ def test_stdout(capsys, class_name, lines):
     path = Path("data") / f"{class_name}.class"
     expected_output = "".join(line + "\n" for line in lines)
 
-    with path.open("rb") as f:
-        cls = parse_class_file(f)
-        vm = VirtualMachine()
-        vm.execute_main(cls)
-        captured = capsys.readouterr()
-        assert captured.out == expected_output
+    cls = parse_class_file(path.read_bytes())
+    vm = VirtualMachine()
+    vm.execute_main(cls)
+    captured = capsys.readouterr()
+    assert captured.out == expected_output

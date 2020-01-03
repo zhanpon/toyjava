@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from io import BytesIO
 from itertools import repeat
 from typing import BinaryIO
 
@@ -131,7 +132,8 @@ class ClassFile:
         return self.find_instructions("main")
 
 
-def parse_class_file(stream: BinaryIO) -> ClassFile:
+def parse_class_file(class_file: bytes) -> ClassFile:
+    stream = BytesIO(class_file)
     reader = ClassFileReader(stream)
 
     magic = reader.next_u4()
