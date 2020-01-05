@@ -4,10 +4,9 @@ from io import BytesIO
 from itertools import repeat
 from typing import BinaryIO
 
-from toyjava.constants import ConstantPoolReader
+from toyjava.constants import ConstantPoolReader, String
 from toyjava.instructions import parse_instructions, Getstatic, Ldc, Invokevirtual, Return, Istore1, Iload1, Istore2, \
-    Iload2, \
-    Iinc, Goto, Push, Ifne, BranchIf2, InvokeStatic, Iload0, Ireturn, Arithmetic2
+    Iload2, Iinc, Goto, Push, Ifne, BranchIf2, InvokeStatic, Iload0, Ireturn, Arithmetic2
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +28,10 @@ def execute(instructions, cls, local_variables):
         if isinstance(instruction, Getstatic):
             operand_stack.append(constant_pool[instruction.index])
         elif isinstance(instruction, Ldc):
+            c = constant_pool[instruction.index]
             # Assume it is a String constant
-            value = constant_pool[constant_pool[instruction.index]["string_index"]]["bytes"].decode()
+            assert isinstance(c, String)
+            value = constant_pool[c.string_index]
             operand_stack.append(value)
         elif isinstance(instruction, Invokevirtual):
             # Assume the method only has one argument
@@ -38,11 +39,9 @@ def execute(instructions, cls, local_variables):
             arg1 = operand_stack.pop()
             objectref = operand_stack.pop()
 
-            field_class = constant_pool[constant_pool[objectref["class_index"]]["name_index"]]["bytes"].decode()
-            field_name = constant_pool[constant_pool[objectref["name_and_type_index"]]["name_index"]][
-                "bytes"].decode()
-            method_name = constant_pool[constant_pool[methodref["name_and_type_index"]]["name_index"]][
-                "bytes"].decode()
+            field_class = constant_pool[constant_pool[objectref["class_index"]]["name_index"]]
+            field_name = constant_pool[constant_pool[objectref["name_and_type_index"]]["name_index"]]
+            method_name = constant_pool[constant_pool[methodref["name_and_type_index"]]["name_index"]]
 
             if field_class == "java/lang/System" and field_name == "out" and method_name == "println":
                 print(arg1)
@@ -51,8 +50,7 @@ def execute(instructions, cls, local_variables):
         elif isinstance(instruction, InvokeStatic):
             # stub
             methodref = constant_pool[instruction.index]
-            method_name = constant_pool[constant_pool[methodref["name_and_type_index"]]["name_index"]][
-                "bytes"].decode()
+            method_name = constant_pool[constant_pool[methodref["name_and_type_index"]]["name_index"]]
 
             next_instructions = cls.find_instructions(method_name)
 
@@ -121,7 +119,7 @@ class ClassFile:
     def find_method(self, name):
         for m in self.methods:
             utf8 = self.constant_pool[m.name_index]
-            if utf8["bytes"].decode() == name:
+            if utf8 == name:
                 return m
 
     def find_instructions(self, name):

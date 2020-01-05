@@ -1,6 +1,5 @@
 import logging
 from dataclasses import dataclass
-from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +16,12 @@ class ConstantPool:
 
 
 @dataclass
+class String:
+    string_index: int
+
+
+@dataclass
 class Fieldref:
-    TAG = 9
     class_index: int
     name_and_type_index: int
 
@@ -32,17 +35,17 @@ class ConstantPoolReader:
         self.reader = reader
         self.constant_pool_count = constant_pool_count
 
-    def read(self) -> Tuple[dict, ...]:
+    def read(self) -> ConstantPool:
         return ConstantPool(tuple(self._next() for _ in range(self.constant_pool_count - 1)))
 
-    def _next(self) -> dict:
+    def _next(self):
         tag = self.reader.next_u1()
         if tag == 1:
             length = self.reader.next_u2()
             bytes_ = self.reader.read(length)
             info = {"tag": tag, "length": length, "bytes": bytes_}
             logger.debug(f"Read a Utf8_info: {info}")
-            return info
+            return bytes_.decode()
 
         elif tag == 7:
             info = {"tag": tag, "name_index": self._read_index()}
@@ -50,8 +53,7 @@ class ConstantPoolReader:
             return info
 
         elif tag == 8:
-            string_index = self._read_index()
-            info = {"tag": tag, "string_index": string_index}
+            info = String(string_index=self._read_index())
             logger.debug(f"Read a String_info: {info}")
             return info
 
