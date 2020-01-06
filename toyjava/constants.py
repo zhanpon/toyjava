@@ -3,6 +3,13 @@ from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
+TAG_UTF8 = 1
+TAG_CLASS = 7
+TAG_STRING = 8
+TAG_FIELDREF = 9
+TAG_METHODREF = 10
+TAG_NAME_AND_TYPE = 12
+
 
 class ConstantPool:
     def __init__(self, constants):
@@ -40,24 +47,24 @@ class ConstantPoolReader:
 
     def _next(self):
         tag = self.reader.next_u1()
-        if tag == 1:
+        if tag == TAG_UTF8:
             length = self.reader.next_u2()
             bytes_ = self.reader.read(length)
             info = {"tag": tag, "length": length, "bytes": bytes_}
             logger.debug(f"Read a Utf8_info: {info}")
             return bytes_.decode()
 
-        elif tag == 7:
+        elif tag == TAG_CLASS:
             info = {"tag": tag, "name_index": self._read_index()}
             logger.debug(f"Read a Class_info: {info}")
             return info
 
-        elif tag == 8:
+        elif tag == TAG_STRING:
             info = String(string_index=self._read_index())
             logger.debug(f"Read a String_info: {info}")
             return info
 
-        elif tag == 9:
+        elif tag == TAG_FIELDREF:
             class_index = self._read_index()
             name_and_type_index = self._read_index()
             info = {
@@ -68,7 +75,7 @@ class ConstantPoolReader:
             logger.debug(f"Read a Fieldref_info: {info}")
             return info
 
-        elif tag == 10:
+        elif tag == TAG_METHODREF:
             class_index = self._read_index()
             name_and_type_index = self._read_index()
 
@@ -80,7 +87,7 @@ class ConstantPoolReader:
             logger.debug(f"Read a Methodref_info: {info}")
             return info
 
-        elif tag == 12:
+        elif tag == TAG_NAME_AND_TYPE:
             info = {
                 "tag": tag,
                 "name_index": self._read_index(),
