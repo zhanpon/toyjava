@@ -33,6 +33,12 @@ class Fieldref:
     name_and_type_index: int
 
 
+@dataclass
+class Methodref:
+    class_index: int
+    name_and_type_index: int
+
+
 class ConstantPoolReader:
     """
     https://docs.oracle.com/javase/specs/jvms/se13/html/jvms-4.html#jvms-4.4
@@ -76,14 +82,10 @@ class ConstantPoolReader:
             return info
 
         elif tag == TAG_METHODREF:
-            class_index = self._read_index()
-            name_and_type_index = self._read_index()
-
-            info = {
-                "tag": tag,
-                "class_index": class_index,
-                "name_and_type_index": name_and_type_index,
-            }
+            info = Methodref(
+                class_index=self._read_index(),
+                name_and_type_index=self._read_index()
+            )
             logger.debug(f"Read a Methodref_info: {info}")
             return info
 

@@ -41,7 +41,7 @@ def execute(instructions, cls, local_variables):
 
             field_class = constant_pool[constant_pool[objectref["class_index"]]["name_index"]]
             field_name = constant_pool[constant_pool[objectref["name_and_type_index"]]["name_index"]]
-            method_name = constant_pool[constant_pool[methodref["name_and_type_index"]]["name_index"]]
+            method_name = constant_pool[constant_pool[methodref.name_and_type_index]["name_index"]]
 
             if field_class == "java/lang/System" and field_name == "out" and method_name == "println":
                 print(arg1)
@@ -50,7 +50,7 @@ def execute(instructions, cls, local_variables):
         elif isinstance(instruction, InvokeStatic):
             # stub
             methodref = constant_pool[instruction.index]
-            name_and_type = constant_pool[methodref["name_and_type_index"]]
+            name_and_type = constant_pool[methodref.name_and_type_index]
             descriptor = constant_pool[name_and_type["descriptor_index"]]
             # https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3.3
             num_args = sum(1 for c in descriptor[1:descriptor.find(")")] if c in ["I", "L"])
