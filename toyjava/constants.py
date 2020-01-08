@@ -28,6 +28,11 @@ class String:
 
 
 @dataclass
+class Class:
+    name_index: int
+
+
+@dataclass
 class Fieldref:
     class_index: int
     name_and_type_index: int
@@ -37,6 +42,12 @@ class Fieldref:
 class Methodref:
     class_index: int
     name_and_type_index: int
+
+
+@dataclass
+class NameAndType:
+    name_index: int
+    descriptor_index: int
 
 
 class ConstantPoolReader:
@@ -61,7 +72,9 @@ class ConstantPoolReader:
             return bytes_.decode()
 
         elif tag == TAG_CLASS:
-            info = {"tag": tag, "name_index": self._read_index()}
+            info = Class(
+                name_index=self._read_index()
+            )
             logger.debug(f"Read a Class_info: {info}")
             return info
 
@@ -71,13 +84,10 @@ class ConstantPoolReader:
             return info
 
         elif tag == TAG_FIELDREF:
-            class_index = self._read_index()
-            name_and_type_index = self._read_index()
-            info = {
-                "tag": tag,
-                "class_index": class_index,
-                "name_and_type_index": name_and_type_index,
-            }
+            info = Fieldref(
+                class_index=self._read_index(),
+                name_and_type_index=self._read_index()
+            )
             logger.debug(f"Read a Fieldref_info: {info}")
             return info
 
@@ -90,11 +100,10 @@ class ConstantPoolReader:
             return info
 
         elif tag == TAG_NAME_AND_TYPE:
-            info = {
-                "tag": tag,
-                "name_index": self._read_index(),
-                "descriptor_index": self._read_index(),
-            }
+            info = NameAndType(
+                name_index=self._read_index(),
+                descriptor_index=self._read_index()
+            )
             logger.debug(f"Read a NameAndType_info: {info}")
             return info
         else:
