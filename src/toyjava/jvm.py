@@ -256,7 +256,7 @@ class MethodsReader:
         max_stack = self.reader.next_u2()
         logger.debug(f"Read the field 'max_stack': {max_stack}")
 
-        max_locals = self.reader.next_u2()
+        self.reader.next_u2()  # max_locals
 
         code_length = self.reader.next_u4()
         logger.debug(f"Read the field 'code_length': {code_length}")
@@ -274,7 +274,7 @@ class MethodsReader:
         attributes_count = self.reader.next_u2()
         logger.debug(f"Read the field 'attributes_count': {attributes_count}")
         for _ in range(attributes_count):
-            attribute_name_index2 = self.reader.next_u2()
+            self.reader.next_u2()  # attribute_name_index2
             attribute_length2 = self.reader.next_u4()
             self.reader.read(attribute_length2)
 
