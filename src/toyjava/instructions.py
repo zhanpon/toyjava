@@ -1,7 +1,7 @@
 import operator as op
 from dataclasses import dataclass
 from io import BytesIO
-from typing import Tuple, BinaryIO, Iterable, Callable
+from typing import BinaryIO, Iterable, Callable
 
 CODE_iconst_m1 = b"\x02"
 CODE_iconst_0 = b"\x03"
@@ -249,7 +249,7 @@ def convert(instructions, positions: list):
             yield instruction
 
 
-def parse_instructions(code: bytes) -> Tuple:
+def parse_instructions(code: bytes) -> tuple:
     reader = InstructionReader(BytesIO(code))
     instructions, positions = reader.read()
     return tuple(convert(instructions, positions))
