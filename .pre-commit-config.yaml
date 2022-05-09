@@ -11,3 +11,4 @@ repos:
     hooks:
     -   id: flake8
         exclude: tests
+        additional_dependencies: ["flake8-bugbear"]
