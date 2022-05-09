@@ -8,6 +8,7 @@ authors = [{name = "Yiyang Zhan", email = "pon.zhan@gmail.com"}]
 readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: Apache Software License"]
+requires-python = ">=3.10"
 dynamic = ["version", "description"]
 
 [project.urls]
