@@ -233,20 +233,18 @@ class Goto:
 
 def convert(instructions, positions: list):
     for pos, instruction in zip(positions, instructions):
-        if isinstance(instruction, RawIfne):
-            branchbyte = pos + instruction.branchbyte
-            index = positions.index(branchbyte)
-            yield Ifne(index)
-        elif isinstance(instruction, UnresolvedBranchIf2):
-            branchbyte = pos + instruction.offset
-            index = positions.index(branchbyte)
-            yield BranchIf2(index, instruction.predicate)
-        elif isinstance(instruction, RawGoto):
-            branchbyte = pos + instruction.branchbyte
-            index = positions.index(branchbyte)
-            yield Goto(index)
-        else:
-            yield instruction
+        match instruction:
+            case RawIfne(branchbyte):
+                index = positions.index(pos + branchbyte)
+                yield Ifne(index)
+            case UnresolvedBranchIf2(offset, predicate):
+                index = positions.index(pos + offset)
+                yield BranchIf2(index, predicate)
+            case RawGoto(branchbyte):
+                index = positions.index(pos + branchbyte)
+                yield Goto(index)
+            case _:
+                yield instruction
 
 
 def parse_instructions(code: bytes) -> tuple:
