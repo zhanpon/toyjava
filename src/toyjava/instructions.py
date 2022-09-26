@@ -1,7 +1,8 @@
 import operator as op
 from dataclasses import dataclass
 from io import BytesIO
-from typing import BinaryIO, Iterable, Callable
+from typing import BinaryIO
+from collections.abc import Iterable, Callable
 
 CODE_iconst_m1 = b"\x02"
 CODE_iconst_0 = b"\x03"
