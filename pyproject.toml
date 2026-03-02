@@ -13,3 +13,6 @@ dynamic = ["version", "description"]
 
 [project.urls]
 Home = "https://github.com/zhanpon/toyjava"
+
+[dependency-groups]
+dev = ["pytest", "flake8", "flake8-bugbear"]
