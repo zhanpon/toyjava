@@ -1,0 +1,7 @@
+requires = [ "tox>=4.21" ]
+env_list = [ "py315", "py314", "py313", "py312", "py311", "py310" ]
+skip_missing_interpreters = true
+
+[env_run_base]
+deps = [ "pytest" ]
+commands = [ [ "pytest" ] ]
