@@ -18,11 +18,11 @@ uv run pytest
 # Run a single test
 uv run pytest tests/test_jvm.py::test_hello
 
-# Run tests across Python versions
+# Run lint and tests across Python versions
 uvx --with tox-uv tox
 
-# Lint
-uv run flake8
+# Run all pre-commit hooks (including Ruff) through tox
+uvx --with tox-uv tox -e lint
 
 # Run the interpreter
 uv run bin/toyjava data/Hello.class
@@ -48,4 +48,4 @@ The execution pipeline is: `.class` file → `ClassFile` (parsed binary) → byt
 - Python >= 3.10 required (uses `match`/`case` and other modern syntax).
 - `fields_count != 0` raises `NotImplementedError` — field support is not implemented.
 - Local variable arrays are hardcoded to 10 slots.
-- Linting uses flake8 with flake8-bugbear; E501 (line length) is ignored.
+- The tox lint environment runs all pre-commit hooks, including Ruff with pycodestyle, Pyflakes, bugbear, and Python 3.10 upgrade rules; E501 (line length) is ignored. Tests and `bin/toyjava` are included.

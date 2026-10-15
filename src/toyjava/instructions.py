@@ -233,7 +233,7 @@ class Goto:
 
 
 def convert(instructions, positions: list):
-    for pos, instruction in zip(positions, instructions):
+    for pos, instruction in zip(positions, instructions, strict=False):
         if isinstance(instruction, RawIfne):
             branchbyte = pos + instruction.branchbyte
             index = positions.index(branchbyte)
