@@ -15,4 +15,12 @@ dynamic = ["version", "description"]
 Home = "https://github.com/zhanpon/toyjava"
 
 [dependency-groups]
-dev = ["pytest", "flake8", "flake8-bugbear"]
+dev = ["pytest"]
+
+[tool.ruff]
+target-version = "py310"
+extend-include = ["bin/toyjava"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "B", "UP"]
+ignore = ["E501"]

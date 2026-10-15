@@ -1,4 +1,22 @@
-from toyjava.instructions import *
+import operator as op
+from io import BytesIO
+
+from toyjava.instructions import (
+    BranchIf2,
+    Getstatic,
+    Goto,
+    Iinc,
+    Iload1,
+    InstructionReader,
+    Invokevirtual,
+    Istore1,
+    Ldc,
+    Push,
+    RawGoto,
+    Return,
+    UnresolvedBranchIf2,
+    parse_instructions,
+)
 
 
 def test_parse_instructions():

@@ -1,7 +1,13 @@
 requires = [ "tox>=4.21" ]
-env_list = [ "py315", "py314", "py313", "py312", "py311", "py310" ]
+env_list = [ "py315", "py314", "py313", "py312", "py311", "py310", "lint" ]
 skip_missing_interpreters = true
 
 [env_run_base]
 deps = [ "pytest" ]
 commands = [ [ "pytest" ] ]
+
+[env.lint]
+package = "skip"
+deps = [ "pre-commit" ]
+pass_env = [ "PRE_COMMIT_HOME" ]
+commands = [ [ "pre-commit", "run", { replace = "posargs", default = [ "--all-files" ], extend = true } ] ]
